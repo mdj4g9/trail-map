@@ -1,0 +1,85 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Trail Map + Elevation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: system-ui, sans-serif;
+            background: #fff;
+        }
+        #map {
+            height: 60vh;
+            width: 100%;
+        }
+        #elevation {
+            height: 25vh;
+            width: 100%;
+            padding: 0 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+<div id="elevation"></div>
+
+<script>
+    const trailData = [{"lat": 39.86681, "lon": -86.023829, "elevation": 250, "distance_km": 0}];
+    const coordinates = trailData.map(pt => [pt.lon, pt.lat]);
+    const elevationData = trailData.map(pt => pt.elevation);
+    const distanceData = trailData.map(pt => pt.distance_km.toFixed(2));
+
+    const map = new maplibregl.Map({
+        container: 'map',
+        style: 'https://api.maptiler.com/maps/streets/style.json?key=16FnGLzaCOfZ3QOhSAbg',
+        center: coordinates[0],
+        zoom: 14
+    });
+
+    map.on('load', () => {
+        map.addSource('trail', {
+            'type': 'geojson',
+            'data': {
+                'type': 'Feature',
+                'geometry': {
+                    'type': 'LineString',
+                    'coordinates': coordinates
+                }
+            }
+        });
+
+        map.addLayer({
+            'id': 'trail-line',
+            'type': 'line',
+            'source': 'trail',
+            'layout': {
+                'line-join': 'round',
+                'line-cap': 'round'
+            },
+            'paint': {
+                'line-color': '#ff7e5f',
+                'line-width': 3
+            }
+        });
+
+        const startPopup = new maplibregl.Popup({ offset: 25 }).setText('Start');
+
+        const startMarker = new maplibregl.Marker({
+            color: 'green',
+            scale: 1.2
+        })
+        .setLngLat(coordinates[0])
+        .setPopup(startPopup)
+        .addTo(map);
+    });
+</script>
+
+</body>
+</html>
