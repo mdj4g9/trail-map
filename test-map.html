@@ -64,7 +64,11 @@
 <div id="credit-line">A TrailHead Vibes Map Creation.</div>
 
 <script>
-// Trail data omitted for brevity - insert your trailData array here
+const trailData = [
+  { lat: 39.86919164657593, lon: -86.03384971618652, elevation: 228.14, distance_km: 0.0 },
+  { lat: 39.869041442871094, lon: -86.03397846221924, elevation: 228.16, distance_km: 0.019986717746052964 },
+  { lat: 39.86895561218262, lon: -86.03412866592407, elevation: 228.25, distance_km: 0.035985690662862856 }
+];
 
 const coordinates = trailData.map(pt => [pt.lon, pt.lat]);
 const elevationDataFeet = trailData.map(pt => pt.elevation * 3.28084);
@@ -74,7 +78,7 @@ const map = new maplibregl.Map({
   container: 'map',
   style: 'https://api.maptiler.com/maps/streets/style.json?key=16FnGLzaCOfZ3QOhSAbg',
   center: coordinates[0],
-  zoom: 12
+  zoom: 16
 });
 
 map.addControl(new maplibregl.NavigationControl(), 'top-right');
@@ -163,3 +167,4 @@ map.on('load', () => {
 
 </body>
 </html>
+
