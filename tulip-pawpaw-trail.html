@@ -108,13 +108,14 @@ map.on('load', () => {
       '<b>🟢 Distance:</b>' + d.toFixed(2) + ' miles<br>' + 
       '<b>🔵 Elevation:</b> ' + elevationDataFeet[i].toFixed(0) + ' feet<br>' + 
       '<b>🟠 Grade:</b> ' + gradeData[i] + '%'
-                               ),
+    ),
     hoverinfo: 'text',
     name: 'Elevation (feet)'
   }], {
     margin: { t: 20, b: 40, l: 50, r: 30 },
     xaxis: {
-      title: 'Distance (miles)',
+      title: {
+        text: 'Distance (miles)',
         font: {
           family: 'Poppins, system-ui, sans-serif',
           size: 16,
@@ -132,8 +133,8 @@ map.on('load', () => {
       dtick: 0.25
     },
     yaxis: {
-      title: 'Elevation (feet)',
-      showgrid: false,
+      title: {
+      text: 'Elevation (feet)',
       font: {
         family: 'Poppins, system-ui, sans-serif',
         size: 16,
@@ -146,6 +147,8 @@ map.on('load', () => {
       size: 12,
       color: '#333',
       weight: 'bold'
+    },
+      showgrid: false,
       dtick: 15,
       range: [825, 875]
     },
