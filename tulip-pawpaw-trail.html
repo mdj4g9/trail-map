@@ -50,7 +50,7 @@ const map = new maplibregl.Map({
   center: coordinates[0],
   zoom: 18
 });
-
+map.addControl(new maplibregl.NavigationControl(), 'top-right');
 map.on('load', () => {
   map.addSource('trail', {
     'type': 'geojson',
