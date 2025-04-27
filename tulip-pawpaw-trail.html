@@ -47,8 +47,6 @@ const gradeData = trailData.map(pt => (pt.grade || 0).toFixed(1));
 const map = new maplibregl.Map({
   container: 'map',
   style: 'https://api.maptiler.com/maps/streets/style.json?key=16FnGLzaCOfZ3QOhSAbg',
-  center: coordinates[0],
-  zoom: 16
 });
 map.addControl(new maplibregl.NavigationControl(), 'top-right');
 map.on('load', () => {
@@ -75,6 +73,16 @@ map.on('load', () => {
       'line-color': '#ff7e5f',
       'line-width': 3
     }
+  });
+
+  const bounds = coordinates.reduce((bounds, coord) => {
+    return bounds.extend(coord);
+  }, new maplibregl.LngLatBounds(coordinates[0], coordinates[0]));
+
+  map.fitBounds(bounds, {
+    padding: 30,
+    linear: false,
+    duration: 1500
   });
 
   const startPopup = new maplibregl.Popup({ offset: 25 }).setText('Start');
