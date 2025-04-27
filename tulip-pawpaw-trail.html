@@ -104,7 +104,11 @@ map.on('load', () => {
     line: { color: '#5555ff' },
     fill: 'tozeroy',
     fillcolor: 'rgba(85,85,255,0.2)',
-    text: distanceDataMiles.map((d, i) => 'Distance: ' + d.toFixed(2) + ' miles<br>Elevation: ' + elevationDataFeet[i].toFixed(0) + ' feet<br>Grade: ' + gradeData[i] + '%'),
+    text: distanceDataMiles.map((d, i) => 
+      '<b>🟢 Distance:</b>' + d.toFixed(2) + ' miles<br>' + 
+      '<b>🔵 Elevation:</b> ' + elevationDataFeet[i].toFixed(0) + ' feet<br>' + 
+      '<b>🟠 Grade:</b> ' + gradeData[i] + '%'
+                               ),
     hoverinfo: 'text',
     name: 'Elevation (feet)'
   }], {
