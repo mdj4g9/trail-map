@@ -115,12 +115,37 @@ map.on('load', () => {
     margin: { t: 20, b: 40, l: 50, r: 30 },
     xaxis: {
       title: 'Distance (miles)',
+        font: {
+          family: 'Poppins, system-ui, sans-serif',
+          size: 16,
+          color: '#333',
+          weight: 'bold'
+        }
+    },
+    tickfont: {
+      family: 'Poppins, system-ui, sans-serif',
+      size: 12,
+      color: '#333',
+      weight: 'bold'
+    },
       showgrid: false,
       dtick: 0.25
     },
     yaxis: {
       title: 'Elevation (feet)',
       showgrid: false,
+      font: {
+        family: 'Poppins, system-ui, sans-serif',
+        size: 16,
+        color: '#333',
+        weight: 'bold'
+      }
+    },
+    tickfont: {
+      family: 'Poppins, system-ui, sans-serif',
+      size: 12,
+      color: '#333',
+      weight: 'bold'
       dtick: 15,
       range: [825, 875]
     },
