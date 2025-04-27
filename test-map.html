@@ -40,20 +40,20 @@
       color: #555;
     }
     /* Customize zoom buttons */
-  .maplibregl-ctrl-zoom-in, .maplibregl-ctrl-zoom-out {
-    background-color: #ffffff !important;
-    border: 1px solid #ccc !important;
+  .maplibregl-ctrl-zoom-in, .maplibregl-ctrl-zoom-out, .maplibregl-ctrl-compass {
+    background-color: #BC13FE !important;
+    border: 1px solid #cccccc !important;
     border-radius: 50% !important;
-    width: 40px !important;
-    height: 40px !important;
+    width: 45px !important;
+    height: 45px !important;
     font-size: 18px !important;
-    color: #333 !important;
+    color: #333333 !important;
     box-shadow: 0px 2px 6px rgba(0,0,0,0.15);
-    margin: 5px 0; /* space between + and - */
+    margin: 5px 0; /* space between buttons */
   }
 
-  .maplibregl-ctrl-zoom-in:hover, .maplibregl-ctrl-zoom-out:hover {
-    background-color: #eeeeee !important;
+  .maplibregl-ctrl-zoom-in:hover, .maplibregl-ctrl-zoom-out:hover, .maplibregl-ctrl-compass:hover {
+    background-color: #7A098E !important;
   }
   /* 🧹 KILL all unwanted background, border, box around zoom buttons */
   .maplibregl-ctrl-group {
@@ -63,6 +63,9 @@
     padding: 0 !important;
     margin: 0 !important;
   }
+ .maplibregl-ctrl-top-right {
+    right: 10px !important; /* Push controls slightly off edge */
+  }
   /* Even deeper: kill wrapper box on parent containers */
   .maplibregl-ctrl-top-right .maplibregl-ctrl {
     background: none !important;
@@ -70,10 +73,6 @@
     box-shadow: none !important;
     padding: 0 !important;
     margin: 0 !important;
-      }
-    /* Hide compass reset button */
-    .maplibregl-ctrl-compass {
-      display: none !important;
     }
     /* Customize hover popup */
     .hoverlayer .hovertext {
