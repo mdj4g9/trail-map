@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Trail Map + Elevation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
+  <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', system-ui, sans-serif;
+      background: #f0f0f0;
+    }
+    #map {
+      height: 60vh;
+      width: 90%;
+      margin: 20px auto;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    #elevation {
+      height: 25vh;
+      width: 90%;
+      margin: 0 auto 10px auto;
+      padding: 0 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #f7f7f7;
+    }
+    #credit-line {
+      width: 90%;
+      margin: 0 auto 20px auto;
+      text-align: left;
+      font-size: 14px;
+      font-family: 'Poppins', system-ui, sans-serif;
+      font-weight: bold;
+      color: #555;
+    }
+    .maplibregl-ctrl-zoom-in, .maplibregl-ctrl-zoom-out {
+      background-color: #ffffff !important;
+      border: 1px solid #ccc !important;
+      border-radius: 8px !important;
+      width: 40px !important;
+      height: 40px !important;
+      font-size: 18px !important;
+      color: #333 !important;
+      box-shadow: 0px 2px 6px rgba(0,0,0,0.15);
+    }
+    .maplibregl-ctrl-zoom-in:hover, .maplibregl-ctrl-zoom-out:hover {
+      background-color: #eeeeee !important;
+    }
+    .hoverlayer .hovertext {
+      border-radius: 8px !important;
+      box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+<div id="elevation"></div>
+<div id="credit-line">A TrailHead Vibes Map Creation.</div>
+
+<script>
+// Trail data omitted for brevity - insert your trailData array here
+
+const coordinates = trailData.map(pt => [pt.lon, pt.lat]);
+const elevationDataFeet = trailData.map(pt => pt.elevation * 3.28084);
+const distanceDataMiles = trailData.map(pt => pt.distance_km * 0.621371);
+
+const map = new maplibregl.Map({
+  container: 'map',
+  style: 'https://api.maptiler.com/maps/streets/style.json?key=16FnGLzaCOfZ3QOhSAbg',
+  center: coordinates[0],
+  zoom: 12
+});
+
+map.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+map.on('load', () => {
+  map.addSource('trail', {
+    'type': 'geojson',
+    'data': {
+      'type': 'Feature',
+      'geometry': {
+        'type': 'LineString',
+        'coordinates': coordinates
+      }
+    }
+  });
+
+  map.addLayer({
+    'id': 'trail-line',
+    'type': 'line',
+    'source': 'trail',
+    'layout': {
+      'line-join': 'round',
+      'line-cap': 'round'
+    },
+    'paint': {
+      'line-color': '#ff7e5f',
+      'line-width': 3
+    }
+  });
+
+  const bounds = coordinates.reduce((bounds, coord) => {
+    return bounds.extend(coord);
+  }, new maplibregl.LngLatBounds(coordinates[0], coordinates[0]));
+
+  map.fitBounds(bounds, {
+    padding: 30,
+    linear: false,
+    duration: 1500
+  });
+
+  const startPopup = new maplibregl.Popup({ offset: 25 }).setText('Start');
+
+  const startMarker = new maplibregl.Marker({
+    color: 'green',
+    scale: 1.2
+  })
+  .setLngLat(coordinates[0])
+  .setPopup(startPopup)
+  .addTo(map);
+
+  const hoverMarker = new maplibregl.Marker({ color: '#000' }).setLngLat(coordinates[0]).addTo(map);
+
+  Plotly.newPlot('elevation', [{
+    x: distanceDataMiles,
+    y: elevationDataFeet,
+    mode: 'lines',
+    line: { color: '#5555ff' },
+    fill: 'tozeroy',
+    fillcolor: 'rgba(85,85,255,0.2)',
+    name: 'Elevation (feet)'
+  }], {
+    margin: { t: 20, b: 40, l: 50, r: 30 },
+    xaxis: {
+      title: { text: 'Distance (miles)', font: { family: 'Poppins', size: 16, color: '#333', weight: 'bold' } },
+      tickfont: { family: 'Poppins', size: 12, color: '#333', weight: 'bold' },
+      dtick: 0.5,
+      showgrid: false
+    },
+    yaxis: {
+      title: { text: 'Elevation (feet)', font: { family: 'Poppins', size: 16, color: '#333', weight: 'bold' } },
+      tickfont: { family: 'Poppins', size: 12, color: '#333', weight: 'bold' },
+      dtick: 20,
+      range: [740, 840],
+      showgrid: false
+    },
+    plot_bgcolor: "#f7f7f7",
+    paper_bgcolor: "#f7f7f7"
+  });
+
+  document.getElementById('elevation').on('plotly_hover', (data) => {
+    const idx = data.points[0].pointIndex;
+    hoverMarker.setLngLat(coordinates[idx]);
+  });
+});
+</script>
+
+</body>
+</html>
