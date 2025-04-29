@@ -162,7 +162,6 @@ const moveMarker = (data) => {
 // Attach moveMarker to both hover and click
 document.getElementById('elevation').on('plotly_hover', moveMarker);
 document.getElementById('elevation').on('plotly_click', moveMarker);
-};
   
   Plotly.newPlot('elevation', [{
     x: distanceDataMiles,
