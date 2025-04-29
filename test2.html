@@ -154,13 +154,13 @@ Plotly.newPlot('elevation', [{
   yaxis: {
     title: { text: 'Elevation (feet)' },
     showgrid: false,
-    autorange: true,
+    range: [Math.min(...elevationDataFeet) - 10, Math.max(...elevationDataFeet) + 10],
     automargin: true
   },
   plot_bgcolor: "#f7f7f7",
   paper_bgcolor: "#f7f7f7"
-})
-
+});
+  
     .then(function() {
     // ✅ Correct way: Use getElementById
     const plotDiv = document.getElementById('elevation');
