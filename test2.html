@@ -134,6 +134,7 @@ map.on('load', () => {
     .addTo(map);
 
   // Create Elevation Plot
+// Create Elevation Plot
 Plotly.newPlot('elevation', [{
   x: distanceDataMiles,
   y: elevationDataFeet,
@@ -160,28 +161,27 @@ Plotly.newPlot('elevation', [{
   plot_bgcolor: "#f7f7f7",
   paper_bgcolor: "#f7f7f7"
 });
-  
-    .then(function() {
-    // ✅ Correct way: Use getElementById
-    const plotDiv = document.getElementById('elevation');
 
-    const hoverMarker = new maplibregl.Marker({ color: '#FD5E53' }).setLngLat(coordinates[0]).addTo(map);
+// ✅ Now, immediately setup hover marker!
+const plotDiv = document.getElementById('elevation');
+const hoverMarker = new maplibregl.Marker({ color: '#FD5E53' }).setLngLat(coordinates[0]).addTo(map);
 
-    const moveMarker = (data) => {
-      const idx = data.points[0]?.pointIndex;
-      if (idx == null) return;
-      const coord = coordinates[idx];
-      hoverMarker.setLngLat(coord);
+const moveMarker = (data) => {
+  const idx = data.points[0]?.pointIndex;
+  if (idx == null) return;
+  const coord = coordinates[idx];
+  hoverMarker.setLngLat(coord);
 
-      if (window.hoverPopup) window.hoverPopup.remove();
-      window.hoverPopup = new maplibregl.Popup({ offset: 15 })
-        .setLngLat(coord)
-        .setHTML(`<b>Distance:</b> ${distanceDataMiles[idx].toFixed(2)} mi<br><b>Elevation:</b> ${elevationDataFeet[idx].toFixed(0)} ft<br><b>Grade:</b> ${gradeData[idx]}%`)
-        .addTo(map);
-    };
+  if (window.hoverPopup) window.hoverPopup.remove();
+  window.hoverPopup = new maplibregl.Popup({ offset: 15 })
+    .setLngLat(coord)
+    .setHTML(`<b>Distance:</b> ${distanceDataMiles[idx].toFixed(2)} mi<br><b>Elevation:</b> ${elevationDataFeet[idx].toFixed(0)} ft<br><b>Grade:</b> ${gradeData[idx]}%`)
+    .addTo(map);
+};
 
-    plotDiv.on('plotly_hover', moveMarker);
-    plotDiv.on('plotly_click', moveMarker);
+plotDiv.on('plotly_hover', moveMarker);
+plotDiv.on('plotly_click', moveMarker);
+
   });
 });
 </script>
