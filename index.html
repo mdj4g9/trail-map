@@ -144,6 +144,26 @@ map.on('load', () => {
 
   const hoverMarker = new maplibregl.Marker({ color: '#FD5E53' }).setLngLat(coordinates[0]).addTo(map);
 
+const moveMarker = (data) => {
+  const idx = data.points[0].pointIndex;
+  const coord = coordinates[idx];
+  hoverMarker.setLngLat(coord);
+
+  // Create a popup at the clicked point
+  if (window.hoverPopup) {
+    window.hoverPopup.remove();
+  }
+  window.hoverPopup = new maplibregl.Popup({ offset: 15 })
+    .setLngLat(coord)
+    .setHTML(`<b>Distance:</b> ${distanceDataMiles[idx].toFixed(2)} mi<br><b>Elevation:</b> ${elevationDataFeet[idx].toFixed(0)} ft<br><b>Grade:</b> ${(trailData[idx].grade || 0).toFixed(1)}%`)
+    .addTo(map);
+};
+
+// Attach moveMarker to both hover and click
+document.getElementById('elevation').on('plotly_hover', moveMarker);
+document.getElementById('elevation').on('plotly_click', moveMarker);
+};
+  
   Plotly.newPlot('elevation', [{
     x: distanceDataMiles,
     y: elevationDataFeet,
@@ -177,9 +197,7 @@ map.on('load', () => {
     paper_bgcolor: "#f7f7f7"
   });
 
-  document.getElementById('elevation').on('plotly_hover', (data) => {
-    const idx = data.points[0].pointIndex;
-    hoverMarker.setLngLat(coordinates[idx]);
+  
   });
 });
 </script>
