@@ -102,7 +102,6 @@ const map = new maplibregl.Map({
   zoom: 12
 });
 
-// Add zoom buttons
 map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
 
 map.on('load', () => {
@@ -155,8 +154,10 @@ map.on('load', () => {
     yaxis: { title: { text: 'Elevation (feet)' }, dtick: 10, showgrid: false },
     plot_bgcolor: "#f7f7f7",
     paper_bgcolor: "#f7f7f7"
-  }).then(function(plot) {
-    // Only now create hoverMarker
+  }).then(function() {
+    // ✅ Correct way: Use getElementById
+    const plotDiv = document.getElementById('elevation');
+
     const hoverMarker = new maplibregl.Marker({ color: '#FD5E53' }).setLngLat(coordinates[0]).addTo(map);
 
     const moveMarker = (data) => {
@@ -172,11 +173,10 @@ map.on('load', () => {
         .addTo(map);
     };
 
-    plot.on('plotly_hover', moveMarker);
-    plot.on('plotly_click', moveMarker);
+    plotDiv.on('plotly_hover', moveMarker);
+    plotDiv.on('plotly_click', moveMarker);
   });
 });
 </script>
-
 </body>
 </html>
