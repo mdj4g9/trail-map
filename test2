@@ -121,47 +121,18 @@ map.on('load', () => {
     id: 'trail-line',
     type: 'line',
     source: 'trail',
-    layout: {
-      'line-join': 'round',
-      'line-cap': 'round'
-    },
-    paint: {
-      'line-color': '#BC13FE',
-      'line-width': 3
-    }
+    layout: { 'line-join': 'round', 'line-cap': 'round' },
+    paint: { 'line-color': '#BC13FE', 'line-width': 3 }
   });
 
-  // Fit map to trail bounds
-  const bounds = coordinates.reduce((bounds, coord) => {
-    return bounds.extend(coord);
-  }, new maplibregl.LngLatBounds(coordinates[0], coordinates[0]));
-
+  const bounds = coordinates.reduce((bounds, coord) => bounds.extend(coord), new maplibregl.LngLatBounds(coordinates[0], coordinates[0]));
   map.fitBounds(bounds, { padding: 30, linear: false, duration: 1500 });
 
-  // Add Start Marker
   const startPopup = new maplibregl.Popup({ offset: 25 }).setText('Start');
-  const startMarker = new maplibregl.Marker({ color: 'green', scale: 1.2 })
+  new maplibregl.Marker({ color: 'green', scale: 1.2 })
     .setLngLat(coordinates[0])
     .setPopup(startPopup)
     .addTo(map);
-
-  // Add Hover Marker
-  const hoverMarker = new maplibregl.Marker({ color: '#FD5E53' }).setLngLat(coordinates[0]).addTo(map);
-
-  const moveMarker = (data) => {
-    const idx = data.points[0].pointIndex;
-    const coord = coordinates[idx];
-    hoverMarker.setLngLat(coord);
-
-    // Remove existing popup if any
-    if (window.hoverPopup) {
-      window.hoverPopup.remove();
-    }
-    window.hoverPopup = new maplibregl.Popup({ offset: 15 })
-      .setLngLat(coord)
-      .setHTML(`<b>Distance:</b> ${distanceDataMiles[idx].toFixed(2)} mi<br><b>Elevation:</b> ${elevationDataFeet[idx].toFixed(0)} ft<br><b>Grade:</b> ${gradeData[idx]}%`)
-      .addTo(map);
-  };
 
   // Create Elevation Plot
   Plotly.newPlot('elevation', [{
@@ -171,7 +142,7 @@ map.on('load', () => {
     line: { color: '#5555ff' },
     fill: 'tozeroy',
     fillcolor: 'rgba(85,85,255,0.2)',
-    text: distanceDataMiles.map((d, i) => 
+    text: distanceDataMiles.map((d, i) =>
       '<b>🟢 Distance:</b> ' + d.toFixed(2) + ' miles<br>' +
       '<b>🔵 Elevation:</b> ' + elevationDataFeet[i].toFixed(0) + ' feet<br>' +
       '<b>🟠 Grade:</b> ' + gradeData[i] + '%'
@@ -180,25 +151,30 @@ map.on('load', () => {
     name: 'Elevation (feet)'
   }], {
     margin: { t: 20, b: 40, l: 50, r: 30 },
-    xaxis: {
-      title: { text: 'Distance (miles)', font: { family: 'Poppins', size: 16, color: '#333' } },
-      tickfont: { family: 'Poppins', size: 12, color: '#333' },
-      dtick: 0.5,
-      showgrid: false
-    },
-    yaxis: {
-      title: { text: 'Elevation (feet)', font: { family: 'Poppins', size: 16, color: '#333' } },
-      tickfont: { family: 'Poppins', size: 12, color: '#333' },
-      dtick: 10,
-      showgrid: false
-    },
+    xaxis: { title: { text: 'Distance (miles)' }, dtick: 0.5, showgrid: false },
+    yaxis: { title: { text: 'Elevation (feet)' }, dtick: 10, showgrid: false },
     plot_bgcolor: "#f7f7f7",
     paper_bgcolor: "#f7f7f7"
   }).then(function(plot) {
+    // Only now create hoverMarker
+    const hoverMarker = new maplibregl.Marker({ color: '#FD5E53' }).setLngLat(coordinates[0]).addTo(map);
+
+    const moveMarker = (data) => {
+      const idx = data.points[0]?.pointIndex;
+      if (idx == null) return;
+      const coord = coordinates[idx];
+      hoverMarker.setLngLat(coord);
+
+      if (window.hoverPopup) window.hoverPopup.remove();
+      window.hoverPopup = new maplibregl.Popup({ offset: 15 })
+        .setLngLat(coord)
+        .setHTML(`<b>Distance:</b> ${distanceDataMiles[idx].toFixed(2)} mi<br><b>Elevation:</b> ${elevationDataFeet[idx].toFixed(0)} ft<br><b>Grade:</b> ${gradeData[idx]}%`)
+        .addTo(map);
+    };
+
     plot.on('plotly_hover', moveMarker);
     plot.on('plotly_click', moveMarker);
   });
-
 });
 </script>
 
