@@ -26,7 +26,43 @@
     <h1>Trail Race Plan Creator</h1>
 
     <form id="plan-form">
-      <!-- form content stays unchanged -->
+      <label for="weeks">Number of Weeks</label>
+      <select id="weeks">
+        <option value="4">4</option>
+        <option value="6">6</option>
+        <option value="8">8</option>
+        <option value="10" selected>10</option>
+        <option value="12">12</option>
+      </select>
+
+      <label for="start-date">Plan Start Date</label>
+      <input type="date" id="start-date" value="2025-03-10">
+
+      <label for="current-mileage">Current Weekly Mileage</label>
+      <input type="number" id="current-mileage" value="15" min="1" max="50">
+
+      <label for="current-elevation">Current Weekly Elevation Gain (ft)</label>
+      <input type="number" id="current-elevation" value="800" min="0" max="30000">
+
+      <label for="longest-run">Current Longest Run (mi)</label>
+      <input type="number" id="longest-run" value="6" min="1">
+
+      <label for="zone2-pace">Zone 2 Pace</label>
+      <select id="zone2-pace">
+        <option>9:00</option>
+        <option>9:30</option>
+        <option selected>10:30</option>
+        <option>11:00</option>
+        <option>12:00</option>
+      </select>
+
+      <label for="toggle-hr-info">Show Heart Rate / Pace Info?</label>
+      <select id="toggle-hr-info">
+        <option>No</option>
+        <option selected>Yes</option>
+      </select>
+
+      <button type="submit">Generate Plan</button>
     </form>
 
     <div class="controls">
@@ -135,3 +171,4 @@
   </script>
 </body>
 </html>
+
