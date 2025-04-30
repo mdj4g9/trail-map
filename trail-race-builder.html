@@ -1,4 +1,4 @@
-<!-- Updated HTML and JavaScript with PDF/CSV download + multi-month calendar navigation -->
+<!-- Updated HTML with missing fields, tooltips, and complete pace dropdown -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,6 +10,7 @@
     .container { max-width: 960px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     h1 { color: #2e8b57; }
     label { display: block; margin-top: 15px; font-weight: bold; }
+    .tooltip { font-weight: normal; font-size: 0.85em; color: #666; }
     select, input[type="number"], input[type="date"] { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; }
     .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 30px; }
     .calendar-day { background: #eaf2f8; padding: 10px; border-radius: 5px; min-height: 100px; position: relative; font-size: 0.9em; }
@@ -24,39 +25,47 @@
 <body>
   <div class="container">
     <h1>Trail Race Plan Creator</h1>
-
     <form id="plan-form">
-      <label for="weeks">Number of Weeks</label>
-      <select id="weeks">
-        <option value="4">4</option>
-        <option value="6">6</option>
-        <option value="8">8</option>
-        <option value="10" selected>10</option>
-        <option value="12">12</option>
-      </select>
+      <label for="race-date">Race Date</label>
+      <input type="date" id="race-date">
 
       <label for="start-date">Plan Start Date</label>
-      <input type="date" id="start-date" value="2025-03-10">
+      <input type="date" id="start-date">
+
+      <label for="weeks">Number of Weeks</label>
+      <select id="weeks">
+  <script>
+    for (let i = 4; i <= 16; i++) {
+      document.write(`<option value="${i}">${i}</option>`);
+    }
+  </script>
+</select>
 
       <label for="current-mileage">Current Weekly Mileage</label>
-      <input type="number" id="current-mileage" value="15" min="1" max="50">
+      <input type="number" id="current-mileage" min="1" max="50">
 
       <label for="current-elevation">Current Weekly Elevation Gain (ft)</label>
-      <input type="number" id="current-elevation" value="800" min="0" max="30000">
+      <input type="number" id="current-elevation" min="0" max="30000">
 
       <label for="longest-run">Current Longest Run (mi)</label>
-      <input type="number" id="longest-run" value="6" min="1">
+      <input type="number" id="longest-run" min="1">
 
-      <label for="zone2-pace">Zone 2 Pace</label>
+      <label for="zone2-pace">Zone 2 Pace <span class="tooltip">(Choose your typical easy pace)</span></label>
       <select id="zone2-pace">
-        <option>9:00</option>
-        <option>9:30</option>
-        <option selected>10:30</option>
-        <option>11:00</option>
-        <option>12:00</option>
+        <!-- Options from 6:30 to 14:00 in 10 sec increments -->
+        <script>
+          for (let min = 6; min <= 13; min++) {
+            for (let sec = 0; sec < 60; sec += 10) {
+              const option = document.createElement('option');
+              option.textContent = `${min}:${sec.toString().padStart(2, '0')}`;
+              document.write(option.outerHTML);
+            }
+          }
+          document.write('<option>14:00</option>');
+        </script>
       </select>
 
-      <label for="toggle-hr-info">Show Heart Rate / Pace Info?</label>
+      <label for="toggle-hr-info">Show Heart Rate / Pace Info? <span class="tooltip">(Toggle to show pace + heart rate zones in your plan)</span></label>
       <select id="toggle-hr-info">
         <option>No</option>
         <option selected>Yes</option>
@@ -78,97 +87,155 @@
 
     <div class="calendar-grid"></div>
   </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+let fullPlan = [];
+let currentMonthIndex = 0;
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script>
-    let currentMonthIndex = 0;
-    let fullPlan = [];
+function generateTrainingPlan(input) {
+  const plan = [];
+  let weeklyMileage = input.currentMileage;
+  let weeklyElevation = input.currentElevation;
+  const start = new Date(input.startDate);
 
-    function downloadPlanAsCSV() {
-      let csv = 'Date,Day,Type,Mileage,Elevation,HR Zone,Pace\n';
-      fullPlan.forEach(week => {
-        week.workouts.forEach(w => {
-          csv += `${w.date},${w.day},${w.type},${w.mileage},${w.elevation},${w.heartRateZone},${w.pace}\n`;
-        });
-      });
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'training_plan.csv';
-      link.click();
+  for (let week = 0; week < input.weeks; week++) {
+    const weekStart = new Date(start);
+    weekStart.setDate(start.getDate() + week * 7);
+    const weekPlan = [];
+    const days = ['Sunday', 'Tuesday', 'Wednesday', 'Friday', 'Saturday'];
+    const longRunDay = 'Saturday';
+
+    if (week > 0) {
+      weeklyMileage = Math.round(weeklyMileage * 1.1);
+      weeklyElevation = Math.round(weeklyElevation * 1.1);
     }
 
-    function downloadPlanAsPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      let y = 10;
-      fullPlan.forEach(week => {
-        doc.text(`Week ${week.week + 1}`, 10, y);
-        y += 6;
-        week.workouts.forEach(w => {
-          doc.text(`${w.date} - ${w.day} - ${w.type} - ${w.mileage}mi - ${w.elevation}ft - HR: ${w.heartRateZone} - Pace: ${w.pace}`, 10, y);
-          y += 6;
-          if (y > 270) { doc.addPage(); y = 10; }
-        });
-        y += 4;
-      });
-      doc.save('training_plan.pdf');
-    }
+    days.forEach((day, index) => {
+      const workoutDate = new Date(weekStart);
+      workoutDate.setDate(weekStart.getDate() + index);
 
-    function prevMonth() {
-      if (currentMonthIndex > 0) {
-        currentMonthIndex--;
-        renderPlanToCalendar(fullPlan, true);
+      let type = 'easy';
+      let mileage = Math.round(weeklyMileage / days.length);
+      let elevation = Math.round(weeklyElevation / days.length);
+      let heartRateZone = 'Zone 2';
+      let pace = input.zone2Pace;
+
+      if (day === longRunDay) {
+        type = 'long';
+        mileage = Math.round(weeklyMileage * 0.4);
+        elevation = Math.round(weeklyElevation * 0.5);
+      } else if (index === 2 && input.weeks > 2) {
+        type = 'threshold';
+        mileage = Math.round(weeklyMileage * 0.2);
+        elevation = Math.round(weeklyElevation * 0.2);
+        heartRateZone = 'Zone 4';
+        pace = '7:30';
+      } else if (index === 4 && input.weeks > 3) {
+        type = 'anaerobic';
+        mileage = Math.round(weeklyMileage * 0.1);
+        elevation = Math.round(weeklyElevation * 0.3);
+        heartRateZone = 'Zone 5';
+        pace = 'all out';
       }
-    }
 
-    function nextMonth() {
-      if ((currentMonthIndex + 1) * 28 < fullPlan.flatMap(w => w.workouts).length) {
-        currentMonthIndex++;
-        renderPlanToCalendar(fullPlan, true);
-      }
-    }
-
-    function renderPlanToCalendar(plan, showHR) {
-      const calendar = document.querySelector('.calendar-grid');
-      calendar.innerHTML = '';
-      const icons = { easy: '🏃‍♂️', long: '🏔️', threshold: '🔥', anaerobic: '⚡', rest: '💤' };
-      const allDays = plan.flatMap(w => w.workouts);
-      const viewDays = allDays.slice(currentMonthIndex * 28, (currentMonthIndex + 1) * 28);
-      viewDays.forEach(w => {
-        const d = document.createElement('div');
-        d.className = 'calendar-day';
-        d.innerHTML = `<span class='icon'>${icons[w.type]}</span><strong>${w.type}:</strong> ${w.mileage}mi, ${w.elevation}ft<br><small>${w.date}</small>`;
-        if (showHR) d.innerHTML += `<br><small>HR: ${w.heartRateZone}, Pace: ${w.pace}</small>`;
-        calendar.appendChild(d);
-      });
-    }
-
-    function handleFormSubmission(e) {
-      if (e) e.preventDefault();
-      const input = {
-        weeks: parseInt(document.querySelector('#weeks').value),
-        startDate: document.querySelector('#start-date').value,
-        currentMileage: parseInt(document.querySelector('#current-mileage').value),
-        currentElevation: parseInt(document.querySelector('#current-elevation').value),
-        longestRun: parseInt(document.querySelector('#longest-run').value),
-        goal: 'Finish',
-        availableDays: ['Sunday', 'Tuesday', 'Wednesday', 'Friday', 'Saturday'],
-        preferredLongRunDays: ['Saturday'],
-        zone2Pace: document.querySelector('#zone2-pace').value,
-        showHeartRateInfo: document.querySelector('#toggle-hr-info').value === 'Yes'
-      };
-      fullPlan = generateTrainingPlan(input);
-      currentMonthIndex = 0;
-      renderPlanToCalendar(fullPlan, input.showHeartRateInfo);
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      document.querySelector('#plan-form').addEventListener('submit', handleFormSubmission);
-      document.querySelector('#toggle-hr-info').addEventListener('change', handleFormSubmission);
-      handleFormSubmission();
+      weekPlan.push({ date: workoutDate.toISOString().split('T')[0], day, type, mileage, elevation, heartRateZone, pace });
     });
-  </script>
+
+    plan.push({ week, workouts: weekPlan });
+  }
+
+  return plan;
+}
+
+function renderPlanToCalendar(plan, showHR) {
+  const calendar = document.querySelector('.calendar-grid');
+  calendar.innerHTML = '';
+  const icons = { easy: '🏃‍♂️', long: '🏔️', threshold: '🔥', anaerobic: '⚡', rest: '💤' };
+  const allDays = plan.flatMap(w => w.workouts);
+  const viewDays = allDays.slice(currentMonthIndex * 28, (currentMonthIndex + 1) * 28);
+  viewDays.forEach(w => {
+    const d = document.createElement('div');
+    d.className = 'calendar-day';
+    d.innerHTML = `<span class='icon'>${icons[w.type]}</span><strong>${w.type}:</strong> ${w.mileage}mi, ${w.elevation}ft<br><small>${w.date}</small>`;
+    if (showHR) d.innerHTML += `<br><small>HR: ${w.heartRateZone}, Pace: ${w.pace}</small>`;
+    calendar.appendChild(d);
+  });
+}
+
+function handleFormSubmission(e) {
+  if (e) e.preventDefault();
+
+  const raceDate = new Date(document.querySelector('#race-date').value);
+  const startDate = new Date(document.querySelector('#start-date').value);
+  const diffWeeks = Math.floor((raceDate - startDate) / (1000 * 60 * 60 * 24 * 7));
+
+  const input = {
+    weeks: diffWeeks,
+    startDate: document.querySelector('#start-date').value,
+    currentMileage: parseInt(document.querySelector('#current-mileage').value),
+    currentElevation: parseInt(document.querySelector('#current-elevation').value),
+    longestRun: parseInt(document.querySelector('#longest-run').value),
+    zone2Pace: document.querySelector('#zone2-pace').value,
+    showHeartRateInfo: document.querySelector('#toggle-hr-info').value === 'Yes'
+  };
+
+  fullPlan = generateTrainingPlan(input);
+  currentMonthIndex = 0;
+  renderPlanToCalendar(fullPlan, input.showHeartRateInfo);
+}
+
+function downloadPlanAsCSV() {
+  let csv = 'Date,Day,Type,Mileage,Elevation,HR Zone,Pace
+';
+  fullPlan.forEach(week => {
+    week.workouts.forEach(w => {
+      csv += `${w.date},${w.day},${w.type},${w.mileage},${w.elevation},${w.heartRateZone},${w.pace}
+`;
+    });
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'training_plan.csv';
+  link.click();
+}
+
+function downloadPlanAsPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  let y = 10;
+  fullPlan.forEach(week => {
+    doc.text(`Week ${week.week + 1}`, 10, y);
+    y += 6;
+    week.workouts.forEach(w => {
+      doc.text(`${w.date} - ${w.day} - ${w.type} - ${w.mileage}mi - ${w.elevation}ft - HR: ${w.heartRateZone} - Pace: ${w.pace}`, 10, y);
+      y += 6;
+      if (y > 270) { doc.addPage(); y = 10; }
+    });
+    y += 4;
+  });
+  doc.save('training_plan.pdf');
+}
+
+function prevMonth() {
+  if (currentMonthIndex > 0) {
+    currentMonthIndex--;
+    renderPlanToCalendar(fullPlan, true);
+  }
+}
+
+function nextMonth() {
+  if ((currentMonthIndex + 1) * 28 < fullPlan.flatMap(w => w.workouts).length) {
+    currentMonthIndex++;
+    renderPlanToCalendar(fullPlan, true);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelector('#plan-form').addEventListener('submit', handleFormSubmission);
+  document.querySelector('#toggle-hr-info').addEventListener('change', handleFormSubmission);
+});
+</script>
 </body>
 </html>
 
